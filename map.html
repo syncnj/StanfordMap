@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Stanford Map</title>
+<style type="text/css">
+	#map{
+		border: 5px solid grey;
+		overflow: hidden;
+		top: 50px;
+		left: 50px;
+		box-sizing: border-box;
+		position: absolute;
+		z-index: 5;
+	}
+	.mapImg{
+		position: absolute;
+		display: initial;
+		z-index: 3;
+	}
+
+	#mapImg-s{
+		top:0px;
+		left: 0px;
+	}
+
+	
+	#mapImg-m{
+		display: none;
+		top:0px;
+		left: 0px;
+	}
+
+	#mapImg-l{
+		display: none;
+		top:0px;
+		left: 0px;
+	}
+	#mapImg-xl{
+		display: none;
+		top:0px;
+		left: 0px;
+	}
+	#control{
+		position: absolute;
+		top: 0px;
+		z-index: 5;
+
+	}
+	#zoomIn{
+		position: absolute;
+		left: 5px;
+
+	}
+	#zoomOut{
+		position: absolute;
+		left: 50px;
+	}
+
+	#up{
+		position: absolute;
+		top: 40px;
+		left: 27.5px;
+	}
+	#left{
+		position: absolute;
+		top: 60px;
+
+		left: 5px;
+	}
+	#right{
+		position: absolute;
+		top: 60px;
+		left: 50px;
+	}
+	#down{
+		position: absolute;
+		top: 80px;
+		left: 27.5px;
+	}
+
+
+</style>
+</head>
+<body>
+
+<div id="all">
+	<div id="map">
+		<img id="mapImg-s" class="mapImg" src="map-s.gif" alt="map-s" />
+		<img id="mapImg-m" class="mapImg" src="map-m.gif" alt="map-m" />
+		<img id="mapImg-l" class="mapImg" src="map-l.gif" alt="map-l" />
+		<img id="mapImg-xl" class="mapImg" src="map-xl.gif" alt="map-xl" />
+
+	</div>
+
+	<div id="control">
+		<form>
+			<input type="button" id="zoomIn" name="zoomIn" value="+" onclick="imgZoomIn()">
+			<input type="button" id="zoomOut" name="zoomOut" value="-" onclick="imgZoomOut()">
+			<input type="button" id="left" name ="left" value="<" onclick = "moveLeft()">
+			<input type="button" id="right" name="right" value = ">" onclick="moveRight()">
+			<input type="button" id= "up" name="up" value="^" onclick="moveUp()">
+			<input type="button" id="down" name="down" value="v" onclick="moveDown()">
+
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	"use strict";
+
+	var currentImgId = "mapImg-s";
+
+	var mapElement = document.getElementById(currentImgId);
+	var mapDivElement = document.getElementById("map");
+	var mapStyle = window.getComputedStyle(mapElement, null);
+	var mapDivStyle = window.getComputedStyle(mapDivElement, null);
+	var mapLeft;
+	var mapTop;
+	var mapHeight;
+	var mapWidth;
+	var controlElement = document.getElementById('control');
+
+	var mouseDrag = false;
+	
+	var mapDivWidth;
+	var mapDivHeight;
+
+	var mouseOriginX=0;
+	var mouseOriginY=0;
+
+	var topPercentage;	//used for changing the img file
+	var leftPercentage;
+
+
+
+
+	var mapLayers= ["s","m","l","xl"];
+	var mapLayerPointer = 0;
+
+	function changeMapImage(increase){
+		if(increase){
+			mapLayerPointer++;
+			if (mapLayerPointer==4) {
+				mapLayerPointer=3;
+			}
+		}
+		else{
+			mapLayerPointer--;
+			if (mapLayerPointer==-1) {
+				mapLayerPointer=0;
+			}
+		}
+
+		currentImgId = "mapImg-"+mapLayers[mapLayerPointer];
+		for (var i = 0; i < mapLayers.length; i++) {
+			if(i==mapLayerPointer){
+				document.getElementById("mapImg-"+mapLayers[i]).style.display="inline";
+			}
+			else{
+				document.getElementById("mapImg-"+mapLayers[i]).style.display="none";
+			}	
+			//console.log("mapImg-"+mapLayers[mapLayerPointer], document.getElementById("mapImg-"+mapLayers[mapLayerPointer]).style.display);
+
+		}
+	}
+
+
+
+	function imgZoomIn(){
+		getOriginalMapPosition();
+		changeMapImage(true);
+		setNewMapPosition();
+		
+	}
+	function imgZoomOut(){
+		getOriginalMapPosition();
+		changeMapImage(false);
+		setNewMapPosition();
+		
+	}
+
+	function getOriginalMapPosition(){
+		updateMapStyle();
+		updateMapDivStyle();
+		topPercentage  = (mapDivHeight/2.0 -mapTop) / mapHeight;
+		leftPercentage = (mapDivWidth/2.0-mapLeft) / mapWidth;
+		//console.log();
+	}
+
+	function setNewMapPosition(){
+		updateMapStyle();
+		mapElement.style.top = -(topPercentage * mapHeight - mapDivHeight/2.0)+"px";
+		mapElement.style.left = -(leftPercentage*mapWidth- mapDivWidth/2.0)+"px";
+		//console.log( mapElement.style.top);
+	}
+
+	function updateMapDivStyle(){
+		mapDivStyle = document.defaultView.getComputedStyle(mapDivElement,"");
+		mapDivWidth = parseInt(mapDivStyle.width);
+		mapDivHeight = parseInt(mapDivStyle.height);
+
+	}
+
+	function updateMapStyle(){
+		mapElement = document.getElementById(currentImgId);
+		mapStyle = document.defaultView.getComputedStyle(mapElement,"");
+		mapLeft = parseInt(mapStyle.left);
+		mapTop = parseInt(mapStyle.top);
+
+		mapHeight = parseInt(mapStyle.height);
+		mapWidth = parseInt(mapStyle.width);
+
+	}
+
+
+
+
+
+	function moveLeft(){
+		updateMapDivStyle();
+		updateMapStyle();
+		mapElement.style.left = mapLeft - mapDivWidth/2.0  +"px";
+		console.log( "left");
+	}
+	function moveRight(){
+		updateMapDivStyle();
+		updateMapStyle();
+		mapElement.style.left = mapLeft + mapDivWidth/2.0  +"px";
+		console.log(mapElement.style.top);
+		console.log( "right");
+
+	}
+	function moveUp(){
+		updateMapDivStyle();
+		updateMapStyle();
+		mapElement.style.top = mapTop - mapDivHeight/2.0 +"px";
+		console.log("up");
+
+
+	}
+	function moveDown(){
+		updateMapDivStyle();
+		updateMapStyle();
+		mapElement.style.top = mapTop + mapDivHeight/2.0 +"px";
+		console.log( "down");
+	}
+
+	
+
+
+
+
+
+
+
+	<!-- Following code comes from assigmnent description-->
+
+	window.addEventListener("resize",handleResize,false);
+	document.addEventListener("mousemove", handleMouseMove, false);
+	document.addEventListener("mousedown", handleMouseDown, false);
+	document.addEventListener("mouseup", handleMouseUp, false);
+	mapDivElement.addEventListener("dblclick", handleDblClick, false);
+	//Do it so double click on buttons won't interfere
+
+
+
+	function handleMouseMove(event){
+		if(mouseDrag){
+			mapElement.style.left = mapLeft + (event.clientX - mouseOriginX) +"px";
+			mapElement.style.top = mapTop + (event.clientY - mouseOriginY) +"px";
+		}
+	}
+
+
+	function handleMouseDown(event){
+		mouseDrag = true;
+		mouseOriginX = event.clientX;
+		mouseOriginY = event.clientY;
+		event.preventDefault();
+		updateMapStyle();
+		changeMouseCursor(true);
+
+	}
+
+	function handleMouseUp(){
+		mouseDrag = false;
+		changeMouseCursor(false);
+	}
+
+	function handleDblClick(event){
+		//alert("doubleclick");
+		updateMapDivStyle();
+		updateMapStyle();
+		mouseOriginX = event.clientX - parseInt(mapDivStyle.left);
+		mouseOriginY = event.clientY - parseInt(mapDivStyle.top);
+		
+		var centerX = mapDivWidth/2;
+		var centerY = mapDivHeight/2;
+		mapElement.style.left = mapLeft + (centerX- mouseOriginX ) +"px";
+		mapElement.style.top = mapTop + (centerY- mouseOriginY ) +"px";
+		//console.log(centerX, mouseOriginX);
+
+
+	}
+
+	function changeMouseCursor(move){
+		if (move){
+			mapDivElement.style.cursor = "move";
+		}
+		else{
+			mapDivElement.style.cursor = "default";
+		}
+	}
+
+	handleResize();
+
+	function handleResize(){
+		var newWidth = (window.innerWidth-200);
+		var newHeight = (window.innerHeight-100);
+		var photoSectionItem = document.getElementById('map');
+		photoSectionItem.style.width = newWidth+"px";
+		photoSectionItem.style.height = newHeight+"px";
+		controlElement.style.left = (newWidth-100) + "px";
+		controlElement.style.top = 100+ "px";
+	}
+
+
+
+</script>
+</body>
+</html>
